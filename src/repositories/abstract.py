@@ -1,14 +1,15 @@
 """Repository file."""
-import abc
-from typing import Generic, TypeVar
-from collections.abc import Sequence
 
-from sqlalchemy import delete, select, desc
+import abc
+from collections.abc import Sequence
+from typing import Generic, TypeVar
+
+from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Base
+from src.db.models import Base
 
-AbstractModel = TypeVar('AbstractModel')
+AbstractModel = TypeVar("AbstractModel")
 
 
 class Repository(Generic[AbstractModel]):
@@ -61,7 +62,7 @@ class Repository(Generic[AbstractModel]):
         :return: List of founded models
         """
         statement = select(self.type_model).where(whereclause)
-        
+
         if limit:
             statement = statement.limit(limit)
         if order_by:

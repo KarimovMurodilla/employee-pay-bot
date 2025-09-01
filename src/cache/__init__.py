@@ -1,1 +1,1 @@
-from .adapter import Cache
+from .adapter import Cache  # noqa: F401

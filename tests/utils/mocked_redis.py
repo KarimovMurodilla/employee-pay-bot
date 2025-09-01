@@ -1,4 +1,5 @@
 """Mocked Redis."""
+
 from typing import Any
 
 from redis.asyncio.client import Redis

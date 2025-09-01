@@ -1,4 +1,5 @@
 """Database middleware is a common way to inject database dependency in handlers."""
+
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -7,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.structures.data_structure import TransferData
-from src.db.database import Database
+from src.services.tg_bot_service import TelegramBotService
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -20,6 +21,6 @@ class DatabaseMiddleware(BaseMiddleware):
         data: TransferData,
     ) -> Any:
         """This method calls every update."""
-        async with AsyncSession(bind=data['engine']) as session:
-            data['db'] = Database(session)
+        async with AsyncSession(bind=data["engine"]) as session:
+            data["db"] = TelegramBotService(session)
             return await handler(event, data)

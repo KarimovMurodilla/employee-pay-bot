@@ -1,4 +1,5 @@
 """Role middleware used for get role of user for followed filtering."""
+
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -19,6 +20,6 @@ class RoleMiddleware(BaseMiddleware):
         data: TransferUserData | TransferData,
     ) -> Any:
         """This method calls each update of Message or CallbackQuery type."""
-        db: Database = data['db']
-        data['role'] = await db.user.get_role()
+        db: Database = data["db"]
+        data["role"] = await db.user.get_role()
         return await handler(event, data)

@@ -1,4 +1,5 @@
 """This file represent startup bot logic."""
+
 import asyncio
 import logging
 
@@ -13,9 +14,10 @@ from src.configuration import conf
 from src.db.database import create_async_engine
 from src.language.translator import Translator
 
+
 async def start_bot():
     """This function will start bot with polling mode."""
-    bot = Bot(token=conf.bot.token, default=DefaultBotProperties(parse_mode='html'))
+    bot = Bot(token=conf.bot.token, default=DefaultBotProperties(parse_mode="html"))
     cache = Cache()
     storage = get_redis_storage(
         redis=Redis(
@@ -32,14 +34,12 @@ async def start_bot():
         bot,
         allowed_updates=dp.resolve_used_update_types(),
         **TransferData(
-            engine=create_async_engine(url=conf.db.build_connection_str()),
-            cache=cache
+            engine=create_async_engine(url=conf.db.build_connection_str()), cache=cache
         ),
-        translator=Translator(), 
-
+        translator=Translator(),
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=conf.logging_level)
     asyncio.run(start_bot())

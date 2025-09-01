@@ -1,42 +1,106 @@
-"""User model file."""
-import datetime
-from typing import Annotated, Optional
-import sqlalchemy as sa
-import sqlalchemy.orm as orm
-from sqlalchemy.orm import Mapped, mapped_column
+import enum
+from datetime import datetime
+from decimal import Decimal
+from typing import Optional
 
-from src.bot.structures.role import Role
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base
-from ...language.enums import Locales
+from src.db.models.base import Base
+
+
+class UserRole(enum.Enum):
+    EMPLOYEE = "employee"
+    ESTABLISHMENT = "establishment"
+    ADMIN = "admin"
 
 
 class User(Base):
-    """User model."""
+    __tablename__ = "users"
 
-    user_id: Mapped[int] = mapped_column(
-        sa.BigInteger, unique=True, nullable=False, primary_key=True
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True, nullable=False)
+    username: Mapped[str | None] = mapped_column(String(255))
+    first_name: Mapped[str | None] = mapped_column(String(255))
+    last_name: Mapped[str | None] = mapped_column(String(255))
+    phone: Mapped[str | None] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(255))
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole), default=UserRole.EMPLOYEE, nullable=False
     )
-    """ Telegram user id """
-    user_name: Mapped[str] = mapped_column(
-        sa.Text, unique=False, nullable=True
+    department_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("departments.id")
     )
-    """ Telegram user name """
-    first_name: Mapped[str] = mapped_column(
-        sa.Text, unique=False, nullable=True
+    balance: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0.00"))
+    daily_limit: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), default=Decimal("0.00")
     )
-    """ Telegram profile first name """
-    second_name: Mapped[str] = mapped_column(
-        sa.Text, unique=False, nullable=True
+    monthly_limit: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), default=Decimal("0.00")
     )
-    language_code: Mapped[Locales] = mapped_column(sa.Enum(Locales), unique=False, nullable=True)
-    """ Telegram profile second name """
-    is_premium: Mapped[bool] = mapped_column(
-        sa.Boolean, unique=False, nullable=False
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    """ Telegram user premium status """
-    role: Mapped[Role] = mapped_column(sa.Enum(Role), default=Role.USER)
-    created_at: Mapped[Optional[Annotated[datetime.datetime, mapped_column(nullable=False, default=datetime.datetime.utcnow)]]]
 
-    def __str__(self):
-        return f"{self.first_name}"
+    # Relationships
+    department: Mapped[Optional["Department"]] = relationship(
+        "Department", back_populates="users"
+    )
+    transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction", foreign_keys="Transaction.user_id", back_populates="user"
+    )
+    created_transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction", foreign_keys="Transaction.created_by", back_populates="creator"
+    )
+    balance_history: Mapped[list["BalanceHistory"]] = relationship(
+        "BalanceHistory", foreign_keys="BalanceHistory.user_id", back_populates="user"
+    )
+    created_balance_changes: Mapped[list["BalanceHistory"]] = relationship(
+        "BalanceHistory",
+        foreign_keys="BalanceHistory.created_by",
+        back_populates="creator",
+    )
+    owned_establishments: Mapped[list["Establishment"]] = relationship(
+        "Establishment", back_populates="owner"
+    )
+    notifications: Mapped[list["Notification"]] = relationship(
+        "Notification", back_populates="recipient"
+    )
+    generated_reports: Mapped[list["Report"]] = relationship(
+        "Report", back_populates="generated_by_user"
+    )
+    settings_updates: Mapped[list["Setting"]] = relationship(
+        "Setting", back_populates="updated_by_user"
+    )
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_users_telegram_id", "telegram_id"),
+        Index("idx_users_role", "role"),
+        Index("idx_users_department", "department_id"),
+    )
+
+    @property
+    def full_name(self) -> str:
+        """Get user's full name."""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        elif self.last_name:
+            return self.last_name
+        return self.username or f"User {self.telegram_id}"
+    
+    def __repr__(self):
+        return f"User(id={self.id}, telegram_id={self.telegram_id}, username={self.username})"

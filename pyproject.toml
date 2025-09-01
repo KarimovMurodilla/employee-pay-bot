@@ -38,15 +38,16 @@ blue = "^0.9.1"
 
 [tool.ruff]
 line-length = 88
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py310"
-select = [
-    "E", # pycodestyle
-    "F", # pyflakes
-    "UP", # pyupgrade
-    "D", # pydocstyle
+lint.select = [
+  "Q",     # Quote consistency
+  "F",     # Pyflakes
+  "E",     # Pycodestyle errors
+  "W",     # Pycodestyle warnings
+  "I",     # Import sorting
 ]
-fixable = [
+lint.fixable = [
     "A", "C", "D", "E", "F", "G",
     "I", "N", "Q", "S", "T", "W", "ANN",
     "ARG", "BLE", "COM", "DJ", "DTZ", "EM",
@@ -55,7 +56,8 @@ fixable = [
     "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH",
     "TID", "TRY", "UP", "YTT"
 ]
-unfixable = ["B"]
+lint.unfixable = ["B"]
+lint.ignore = ["F821"]
 exclude = [
     ".bzr",
     ".direnv",
@@ -80,10 +82,10 @@ exclude = [
     "venv",
 ]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 
 

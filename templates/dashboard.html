@@ -1,0 +1,150 @@
+{% extends "sqladmin/layout.html" %}
+
+{% block content %}
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: #f4f7f9;
+        color: #333;
+    }
+    .stats-container {
+        background-color: #fff;
+        padding: 20px 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    h1 {
+        color: #2c3e50;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-size: 2.2em;
+    }
+    p, li {
+        font-size: 1.1em;
+        line-height: 1.6;
+    }
+    .stat-box {
+        background-color: #ecf0f1;
+        border-left: 5px solid #3498db;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+    .chart-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    .download-btn {
+        display: inline-block;
+        padding: 12px 25px;
+        background-color: #2ecc71;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .download-btn:hover {
+        background-color: #27ae60;
+    }
+    
+</style>
+
+<div class="stats-container">
+    <h1>Глобальная статистика</h1>
+    <div class="stat-box">
+        <p><strong>Всего пользователей:</strong> {{ total_users }}</p>
+    </div>
+    <div class="stat-box">
+        <p><strong>Общие расходы:</strong> {{ total_spending }}</p>
+    </div>
+    <div class="stat-box">
+        <p><strong>Количество активных заведений:</strong> {{ active_establishments }}</p>
+    </div>
+</div>
+
+<div class="stats-container">
+    <h2>Расходы по отделам</h2>
+    <ul>
+        {% for dept, spending in department_spending %}
+            <li>{{ dept }}: {{ spending }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<hr>
+
+<div class="chart-container">
+    <h2>Доля расходов по заведениям</h2>
+    <canvas id="establishmentChart"></canvas>
+</div>
+<style>
+    #establishmentChart {
+        max-width: 400px;
+        max-height: 400px;
+        margin: 0 auto;
+        display: block;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('establishmentChart').getContext('2d');
+    const establishmentData = JSON.parse('{{ establishment_data | safe }}');
+    const labels = establishmentData.map(item => item.name);
+    const data = establishmentData.map(item => item.spending);
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Расходы',
+                data: data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Расходы по заведениям'
+                }
+            }
+        }
+    });
+</script>
+
+<a href="/admin/download_stats?format=excel" class="download-btn">
+    Скачать отчёт (Excel)
+</a>
+<a href="/admin/download_stats?format=pdf" class="download-btn">
+    Скачать отчёт (PDF)
+</a>
+{% endblock %}
