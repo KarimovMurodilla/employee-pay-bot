@@ -38,9 +38,6 @@ class Establishment(Base):
     )
 
     # Relationships
-    owner: Mapped[Optional["User"]] = relationship(
-        "User", back_populates="owned_establishments", lazy="joined"
-    )
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction", back_populates="establishment"
     )

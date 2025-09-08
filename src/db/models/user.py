@@ -60,29 +60,6 @@ class User(Base):
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction", foreign_keys="Transaction.user_id", back_populates="user"
     )
-    created_transactions: Mapped[list["Transaction"]] = relationship(
-        "Transaction", foreign_keys="Transaction.created_by", back_populates="creator"
-    )
-    balance_history: Mapped[list["BalanceHistory"]] = relationship(
-        "BalanceHistory", foreign_keys="BalanceHistory.user_id", back_populates="user"
-    )
-    created_balance_changes: Mapped[list["BalanceHistory"]] = relationship(
-        "BalanceHistory",
-        foreign_keys="BalanceHistory.created_by",
-        back_populates="creator",
-    )
-    owned_establishments: Mapped[list["Establishment"]] = relationship(
-        "Establishment", back_populates="owner"
-    )
-    notifications: Mapped[list["Notification"]] = relationship(
-        "Notification", back_populates="recipient"
-    )
-    generated_reports: Mapped[list["Report"]] = relationship(
-        "Report", back_populates="generated_by_user"
-    )
-    settings_updates: Mapped[list["Setting"]] = relationship(
-        "Setting", back_populates="updated_by_user"
-    )
 
     # Indexes
     __table_args__ = (

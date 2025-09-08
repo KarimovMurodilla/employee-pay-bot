@@ -12,20 +12,18 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from .settings import engine
 from .settings import engine
 
-from src.db.models.balance_history import BalanceHistory
 from src.db.models.department import Department
 from src.db.models.establishment import Establishment
-from src.db.models.report import Report
 from src.db.models.transaction import Transaction
 from src.db.models.user import User
 
 
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, "department", "total_spent"]
-    can_create = False
+    can_create = True
     can_delete = False
     column_searchable_list = [User.username, User.first_name, User.last_name]
-    column_details_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, User.balance, User.daily_limit, User.monthly_limit, "department", "transactions", "owned_establishments"]
+    column_details_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, User.balance, User.daily_limit, User.monthly_limit, "department", "transactions",]
     column_export_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, User.balance, User.department_id]
     column_labels = {
         "department": "Department",
@@ -105,43 +103,6 @@ class TransactionAdmin(ModelView, model=Transaction):
         Transaction.status,
         Transaction.created_at,
     ]
-
-
-class ReportAdmin(ModelView, model=Report):
-    column_list = [
-        Report.id,
-        Report.title,
-        Report.type,
-        Report.format,
-        Report.generated_at,
-        "generated_by_user",
-    ]
-    column_details_list = [
-        Report.id,
-        Report.title,
-        Report.type,
-        Report.format,
-        Report.parameters,
-        Report.file_path,
-        Report.generated_at,
-        "generated_by_user",
-    ]
-    can_create = False
-    can_edit = False
-    
-    async def on_model_delete(self, model: Any) -> None:
-        if model.file_path and os.path.exists(model.file_path):
-            os.remove(model.file_path)
-        return await super().on_model_delete(model)
-
-    @expose("/download/<id>", methods=["GET"])
-    async def download_report(self, request):
-        report_id = request.path_params["id"]
-        report = await self.session.get(Report, report_id)
-        if not report or not report.file_path or not os.path.exists(report.file_path):
-            return FileResponse("", status_code=404)
-        
-        return FileResponse(report.file_path, filename=f"{report.title}.{report.format}")
 
 
 class GlobalStatistics(BaseView):
@@ -248,16 +209,12 @@ class GlobalStatistics(BaseView):
             )
 
 
-class BalanceHistoryAdmin(ModelView, model=BalanceHistory):
-    column_list = [BalanceHistory.amount_change, BalanceHistory.balance_after]
-
-
 ADMIN_VIEWS = [
     UserAdmin,
     DepartmentAdmin,
     EstablishmentAdmin,
     TransactionAdmin,
-    ReportAdmin,
+    # ReportAdmin,
     GlobalStatistics,
-    BalanceHistoryAdmin,
+    # BalanceHistoryAdmin,
 ]

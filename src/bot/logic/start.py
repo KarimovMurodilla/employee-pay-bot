@@ -42,17 +42,11 @@ async def start_handler(
         establishment_id=establishment.id
     )
 
-    total_amount = sum([transaction.amount for transaction in transactions])
-    print(f"{total_amount=}")
-    print(f"{establishment.max_order_amount=}")
-    print(f"{establishment.max_order_amount-total_amount=}")
-
-    if establishment.max_order_amount-total_amount <= 0:
+    if transactions:
         return message.answer("Sizda ushbu muassasaning kunlik limiti tugagan")
 
     text = f"🏢 Muassasa: {establishment.name}\n"
     text += f"🏪 Muassasa uchun limit: {establishment.max_order_amount}\n"
-    text += f"💳 Muassasa uchun balansingiz: {establishment.max_order_amount-total_amount}\n"
     text += f"💳 Umumiy balansingiz: {user.balance}\n\n"
     text += "To'lo'v summasini kiriting"
     await message.answer(text)

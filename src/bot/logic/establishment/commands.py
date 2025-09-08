@@ -61,11 +61,12 @@ async def by_daily(
         return await message.answer("Bugun uchun tranzaksiyalar topilmadi.")
     else:
         transactions_message = "Tranzaktsiyalar:\n\n"
+        transactions_message += f"Muassasa: {establishment_transactions[0].establishment.name}\n\n"
         for transaction in establishment_transactions:
             transactions_message += (
                 f"ID: {transaction.id}\n"
                 f"Summa: {transaction.amount} сум\n"
-                f"Muassasa: {transaction.establishment.name}\n"
+                f"Mijoz: {transaction.user.first_name}\n"
                 f"Vaqt: {transaction.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
             )
         await message.answer(transactions_message)

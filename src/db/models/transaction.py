@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
@@ -16,6 +16,12 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models.base import Base
+
+if TYPE_CHECKING:
+    from src.db.models.user import User
+    from src.db.models.establishment import Establishment
+    from src.db.models.balance_history import BalanceHistory
+    from src.db.models.notification import Notification
 
 
 class TransactionType(enum.Enum):
@@ -59,19 +65,10 @@ class Transaction(Base):
 
     # Relationships
     user: Mapped["User"] = relationship(
-        "User", foreign_keys=[user_id], back_populates="transactions"
-    )
-    creator: Mapped[Optional["User"]] = relationship(
-        "User", foreign_keys=[created_by], back_populates="created_transactions"
+        "User", foreign_keys=[user_id], back_populates="transactions", lazy="joined"
     )
     establishment: Mapped[Optional["Establishment"]] = relationship(
         "Establishment", back_populates="transactions", lazy="joined"
-    )
-    balance_history: Mapped[Optional["BalanceHistory"]] = relationship(
-        "BalanceHistory", back_populates="transaction"
-    )
-    notifications: Mapped[list["Notification"]] = relationship(
-        "Notification", back_populates="transaction"
     )
 
     # Indexes
