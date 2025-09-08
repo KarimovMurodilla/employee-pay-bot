@@ -4,11 +4,11 @@ from aiogram import Router, types
 from aiogram.filters import CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 
-from src.bot.structures.fsm.user import ProcessUser
 from src.bot.structures.fsm.establishment import ProcessEstablishment
+from src.bot.structures.fsm.user import ProcessUser
 from src.bot.structures.keyboards import common
-from src.services.tg_bot_service import TelegramBotService
 from src.db.models.user import UserRole
+from src.services.tg_bot_service import TelegramBotService
 
 start_router = Router(name="start")
 
@@ -30,16 +30,17 @@ async def start_handler(
             telegram_id=message.from_user.id,
             username=message.from_user.username,
             first_name=message.from_user.first_name,
-            last_name=message.from_user.last_name
+            last_name=message.from_user.last_name,
         )
 
     establishment = await db.establishment_service.get_establishment_by_qr(qr_code)
     if not establishment:
         return message.answer("Bunday muassasa topilmadi")
 
-    transactions = await db.transaction_service.get_user_and_establishment_transactions_by_today(
-        user_id=user.id,
-        establishment_id=establishment.id
+    transactions = (
+        await db.transaction_service.get_user_and_establishment_transactions_by_today(
+            user_id=user.id, establishment_id=establishment.id
+        )
     )
 
     if transactions:
@@ -68,21 +69,17 @@ async def start_handler(
             telegram_id=message.from_user.id,
             username=message.from_user.username,
             first_name=message.from_user.first_name,
-            last_name=message.from_user.last_name
+            last_name=message.from_user.last_name,
         )
 
         return await message.answer("Assalomu aleykum")
 
     if user.role == UserRole.EMPLOYEE:
         await state.set_state(ProcessUser.select_menu)
-        return await message.answer(
-            "Assalomu aleykum",
-            reply_markup=common.user_menu()
-        )
+        return await message.answer("Assalomu aleykum", reply_markup=common.user_menu())
 
     elif user.role == UserRole.ESTABLISHMENT:
         await state.set_state(ProcessEstablishment.select_menu)
         return await message.answer(
-            "Assalomu aleykum",
-            reply_markup=common.establishment_menu()
+            "Assalomu aleykum", reply_markup=common.establishment_menu()
         )

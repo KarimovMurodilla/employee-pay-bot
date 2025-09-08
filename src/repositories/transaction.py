@@ -68,7 +68,7 @@ class TransactionRepo(BaseRepository):
             )
         )
         return result.scalars().all()
-    
+
     async def _get_user_and_establishment_transactions_by_today(
         self, user_id: int, establishment_id: int
     ) -> list[Transaction]:
@@ -78,7 +78,7 @@ class TransactionRepo(BaseRepository):
             select(Transaction).where(
                 Transaction.user_id == user_id,
                 Transaction.establishment_id == establishment_id,
-                Transaction.created_at >= today
+                Transaction.created_at >= today,
             )
         )
         return result.scalars().all()

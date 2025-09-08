@@ -10,8 +10,8 @@ from src.db.models.transaction import Transaction, TransactionStatus, Transactio
 from src.errors.custom import ValidationError
 from src.repositories.establishment import EstablishmentRepo
 from src.repositories.transaction import TransactionRepo
-from src.utils.pdf_write import write_revenue_pdf
 from src.utils.excel_write import write_revenue_excel
+from src.utils.pdf_write import write_revenue_pdf
 
 
 class EstablishmentService:
@@ -26,7 +26,9 @@ class EstablishmentService:
         """Get establishment by QR code."""
         return await self.establishment_repo.get_by_qr_code(qr_code)
 
-    async def get_establishment_by_owner_telegram_id(self, owner_telegram_id: int) -> Establishment | None:
+    async def get_establishment_by_owner_telegram_id(
+        self, owner_telegram_id: int
+    ) -> Establishment | None:
         """Get establishment by QR code."""
         return await self.establishment_repo.get_by_owner_telegram_id(owner_telegram_id)
 
@@ -57,10 +59,8 @@ class EstablishmentService:
         )
 
         return await self.establishment_repo.create(establishment)
-    
-    async def get_establishment_total_revenue(
-        self, establishment_id: int
-    ):
+
+    async def get_establishment_total_revenue(self, establishment_id: int):
         total_revenue = await self.establishment_repo.get_total_revenue(
             establishment_id
         )
@@ -115,33 +115,27 @@ class EstablishmentService:
         offset: int = 0,
     ) -> list[Transaction]:
         """Get establishment transactions with filtering."""
-        establishment = await self.establishment_repo.get_by_owner_telegram_id(establishment_owner_telegram_id)
+        establishment = await self.establishment_repo.get_by_owner_telegram_id(
+            establishment_owner_telegram_id
+        )
         return await self.transaction_repo.get_establishment_transactions(
             establishment.id, start_date, end_date, limit, offset
         )
-    
-    async def get_revenue_summary_in_pdf(
-        self, establishment_id: int
-    ):
+
+    async def get_revenue_summary_in_pdf(self, establishment_id: int):
         """Generate revenue summary report in PDF format."""
         # Placeholder for PDF generation logic
         summary = await self.get_establishment_revenue_summary(establishment_id)
         pdf_filename = f"reports/revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.pdf"
-        result = write_revenue_pdf(
-            data=summary, filename=pdf_filename
-        )
+        result = write_revenue_pdf(data=summary, filename=pdf_filename)
         if result:
             return pdf_filename
 
-    async def get_revenue_summary_in_excel(
-        self, establishment_id: int
-    ):
+    async def get_revenue_summary_in_excel(self, establishment_id: int):
         """Generate revenue summary report in XLSX format."""
         # Placeholder for PDF generation logic
         summary = await self.get_establishment_revenue_summary(establishment_id)
         xlsx_filename = f"reports/revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.xlsx"
-        result = write_revenue_excel(
-            data=summary, filename=xlsx_filename
-        )
+        result = write_revenue_excel(data=summary, filename=xlsx_filename)
         if result:
             return xlsx_filename

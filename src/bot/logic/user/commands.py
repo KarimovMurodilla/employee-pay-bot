@@ -1,12 +1,13 @@
+from datetime import datetime
+
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 
 from src.bot.structures.fsm.user import ProcessUser
-from src.services.tg_bot_service import TelegramBotService
 from src.bot.structures.keyboards import common
+from src.services.tg_bot_service import TelegramBotService
 
 from .router import user_router
-from datetime import datetime
 
 
 @user_router.message(ProcessUser.select_menu, F.text == "Tranzaksiyalar")
@@ -18,7 +19,7 @@ async def start_handler(
     user_transactions = await db.user_service.get_user_transactions(
         telegram_id=message.from_user.id,
     )
-    
+
     transactions_message = ""
     if not user_transactions:
         transactions_message += "Tranzaksiyalar topilmadi."
@@ -67,24 +68,31 @@ async def confirm_purchase(
         today_spent = await db.user_service.get_user_today_spent(message.from_user.id)
         establishment = await db.establishment_service.get_establishment_by_qr(qr_code)
         transactions = await db.transaction_service.get_user_and_establishment_transactions_by_today(
-            user_id=user.id,
-            establishment_id=establishment.id
+            user_id=user.id, establishment_id=establishment.id
         )
 
-        total_amount = sum([transaction.amount for transaction in transactions]) # total spent in this establishment today
+        total_amount = sum(
+            [transaction.amount for transaction in transactions]
+        )  # total spent in this establishment today
         if user.balance < amount:
-            await message.answer(f"Hisobingizda yetarli mablag' mavjud emas\n\nSizning hisobingiz: {user.balance}")
+            await message.answer(
+                f"Hisobingizda yetarli mablag' mavjud emas\n\nSizning hisobingiz: {user.balance}"
+            )
 
-        elif establishment.max_order_amount-(total_amount + amount) < 0: # user.daily_limit - (today_spent + amount) < 0
-            await message.answer(f"Kiritilgan summa restoran kunlik limitidan oshib ketdi.\n\nSizdagi qolgan limit: {establishment.max_order_amount - total_amount}")
+        elif (
+            establishment.max_order_amount - (total_amount + amount) < 0
+        ):  # user.daily_limit - (today_spent + amount) < 0
+            await message.answer(
+                f"Kiritilgan summa restoran kunlik limitidan oshib ketdi.\n\nSizdagi qolgan limit: {establishment.max_order_amount - total_amount}"
+            )
 
         else:
             await message.answer(
                 f"Sizning hisobingiz: {user.balance}\n"
-                f"Sizning kunlik limitingiz: {establishment.max_order_amount - total_amount}\n\n" # user.daily_limit - today_spent
+                f"Sizning kunlik limitingiz: {establishment.max_order_amount - total_amount}\n\n"  # user.daily_limit - today_spent
                 f"To'lov qilingandan kegin hisob: {user.balance - amount}\n"
-                f"To'lov qilingandan kegin kunlik limit: {establishment.max_order_amount-(total_amount + amount)}",
-                reply_markup=common.accept()
+                f"To'lov qilingandan kegin kunlik limit: {establishment.max_order_amount - (total_amount + amount)}",
+                reply_markup=common.accept(),
             )
             await state.update_data(dict(amount=amount))
             await state.set_state(ProcessUser.accept_purchase)
@@ -101,22 +109,15 @@ async def confirm_handler(
     user = await db.user_service.get_user_by_telegram_id(c.from_user.id)
     establishment = await db.establishment_service.get_establishment_by_qr(qr_code)
 
-    bill =  f"🧾 Оплата от {user.first_name} (ID: {user.id})\n" \
-            f"Сумма: {amount} сум\n" \
-            f"Дата: {datetime.now().strftime('%d.%m.%Y %H:%M')}"
-    await c.bot.send_message(
-        chat_id=establishment.owner.telegram_id,
-        text=bill
+    bill = (
+        f"🧾 Оплата от {user.first_name} (ID: {user.id})\n"
+        f"Сумма: {amount} сум\n"
+        f"Дата: {datetime.now().strftime('%d.%m.%Y %H:%M')}"
     )
+    await c.bot.send_message(chat_id=establishment.owner.telegram_id, text=bill)
     await c.message.edit_text("✅ Оплачено")
-    await c.message.answer(
-        text=bill
-    )
+    await c.message.answer(text=bill)
 
     await db.user_service.withdraw_from_balance(
-        telegram_id=c.from_user.id,
-        establishment_id=establishment.id,
-        amount=amount
+        telegram_id=c.from_user.id, establishment_id=establishment.id, amount=amount
     )
-
-

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -18,10 +18,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.db.models.base import Base
 
 if TYPE_CHECKING:
-    from src.db.models.user import User
     from src.db.models.establishment import Establishment
-    from src.db.models.balance_history import BalanceHistory
-    from src.db.models.notification import Notification
+    from src.db.models.user import User
 
 
 class TransactionType(enum.Enum):

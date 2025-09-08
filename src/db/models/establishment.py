@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -40,6 +39,12 @@ class Establishment(Base):
     # Relationships
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction", back_populates="establishment"
+    )
+    owner: Mapped["User"] = relationship(
+        "User",
+        back_populates="establishments",
+        foreign_keys=[owner_telegram_id],
+        lazy="joined",
     )
 
     # Indexes

@@ -1,6 +1,6 @@
-from datetime import datetime
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles import Alignment, Font, PatternFill
+
 
 def write_revenue_excel(data: dict, filename="revenue_summary.xlsx"):
     wb = Workbook()
@@ -27,7 +27,9 @@ def write_revenue_excel(data: dict, filename="revenue_summary.xlsx"):
     for i, (key, value) in enumerate(rows, start=start_row):
         ws[f"A{i}"] = key
         ws[f"A{i}"].font = Font(bold=True)
-        ws[f"A{i}"].fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+        ws[f"A{i}"].fill = PatternFill(
+            start_color="DDDDDD", end_color="DDDDDD", fill_type="solid"
+        )
         ws[f"B{i}"] = value
 
     # Автоматическая ширина колонок
@@ -36,6 +38,7 @@ def write_revenue_excel(data: dict, filename="revenue_summary.xlsx"):
 
     wb.save(filename)
     return True
+
 
 # data = {
 #     "establishment_id": 1,

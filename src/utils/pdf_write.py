@@ -1,7 +1,8 @@
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
 
 def write_revenue_pdf(data: dict, filename="revenue_summary.pdf"):
     doc = SimpleDocTemplate(filename, pagesize=A4)
@@ -40,6 +41,7 @@ def write_revenue_pdf(data: dict, filename="revenue_summary.pdf"):
     elements.append(table)
     doc.build(elements)
     return True
+
 
 # # Пример использования
 # data = {

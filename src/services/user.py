@@ -118,7 +118,7 @@ class UserService:
             amount=amount,
             description="Withdrawal",
             establishment_id=establishment_id,  # Assuming no establishment for withdrawals
-            status=TransactionStatus.COMPLETED
+            status=TransactionStatus.COMPLETED,
         )
         await self.transaction_repo.create(transaction)
         await self.user_repo.update(user)

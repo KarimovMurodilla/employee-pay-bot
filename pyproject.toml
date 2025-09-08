@@ -1,15 +1,16 @@
 [tool.poetry]
-name = "asia-plast-bot"
+name = "employee-pay-bot"
 version = "0.1.0"
 description = "Official telegram bot for Asia plast"
 authors = ["MassonNn <ilyalyapin@duck.com>"]
 license = "MIT License"
 readme = "README.md"
 packages = []
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiogram = "^3.0b6"
+aiogram = "3.22.0"
 sqlalchemy = "^2.0.17"
 asyncpg = "^0.28.0"
 alembic = "^1.9.2"
@@ -25,6 +26,9 @@ fastapi = "^0.110.0"
 uvicorn = "^0.27.1"
 itsdangerous = "^2.1.2"
 mypy = "^1.9.0"
+reportlab = "^4.4.3"
+openpyxl = "^3.1.5"
+xlsxwriter = "^3.2.5"
 
 [tool.poetry.group.dev]
 optional=true

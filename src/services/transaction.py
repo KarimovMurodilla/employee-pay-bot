@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +5,6 @@ from src.db.models.establishment import Establishment
 from src.db.models.transaction import Transaction, TransactionStatus, TransactionType
 from src.db.models.user import User
 from src.errors.custom import InsufficientFundsError, ValidationError
-from src.repositories.base import BaseRepository
 from src.repositories.establishment import EstablishmentRepo
 from src.repositories.transaction import TransactionRepo
 from src.repositories.user import UserRepo
@@ -228,7 +226,9 @@ class TransactionService:
         self, user_id: int, establishment_owner_telegram_id: int
     ) -> list[Transaction]:
         """Get today's transactions for a user and establishment."""
-        establishment = await self.establishment_repo.get_by_owner_telegram_id(establishment_owner_telegram_id)
+        establishment = await self.establishment_repo.get_by_owner_telegram_id(
+            establishment_owner_telegram_id
+        )
         return await self.transaction_repo._get_transactions_by_user_and_establishment(
             user_id, establishment.id
         )
@@ -242,4 +242,3 @@ class TransactionService:
     #         offset=offset
     #     )
     #     return transactions
-

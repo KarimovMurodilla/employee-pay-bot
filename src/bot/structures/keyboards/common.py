@@ -1,4 +1,3 @@
-from aiogram import types
 from aiogram.types import (
     InlineKeyboardButton,
 )
@@ -10,9 +9,7 @@ def accept():
 
     # Add the "Back" button
     builder.row(
-        InlineKeyboardButton(
-            text="✅ Tasdiqlash", callback_data="accept_purchase"
-        )
+        InlineKeyboardButton(text="✅ Tasdiqlash", callback_data="accept_purchase")
     )
 
     # Return the built keyboard
@@ -77,6 +74,7 @@ def date_filters():
 # • ✅ Просмотр расходов по каждому пользователю.(по отделам)
 # • ✅ Проценты расходов по заведениям (доли).
 # • ✅ Скачивание отчётов (PDF, Excel)
+
 
 def admin_menu():
     builder = ReplyKeyboardBuilder()

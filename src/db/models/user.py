@@ -28,7 +28,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True, nullable=False)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, primary_key=True, unique=True, nullable=False
+    )
     username: Mapped[str | None] = mapped_column(String(255))
     first_name: Mapped[str | None] = mapped_column(String(255))
     last_name: Mapped[str | None] = mapped_column(String(255))
@@ -60,6 +62,11 @@ class User(Base):
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction", foreign_keys="Transaction.user_id", back_populates="user"
     )
+    establishments: Mapped[list["Establishment"]] = relationship(
+        "Establishment",
+        back_populates="owner",
+        foreign_keys="[Establishment.owner_telegram_id]",
+    )
 
     # Indexes
     __table_args__ = (
@@ -78,6 +85,6 @@ class User(Base):
         elif self.last_name:
             return self.last_name
         return self.username or f"User {self.telegram_id}"
-    
+
     def __repr__(self):
         return f"User(id={self.id}, telegram_id={self.telegram_id}, username={self.username})"

@@ -20,10 +20,14 @@ class EstablishmentRepo(BaseRepository):
         )
         return result.scalar_one_or_none()
 
-    async def get_by_owner_telegram_id(self, owner_telegram_id: int) -> Establishment | None:
+    async def get_by_owner_telegram_id(
+        self, owner_telegram_id: int
+    ) -> Establishment | None:
         """Get establishment by QR code."""
         result = await self.session.execute(
-            select(Establishment).where(Establishment.owner_telegram_id == owner_telegram_id)
+            select(Establishment).where(
+                Establishment.owner_telegram_id == owner_telegram_id
+            )
         )
         return result.scalar_one_or_none()
 
