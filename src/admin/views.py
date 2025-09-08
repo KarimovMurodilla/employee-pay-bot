@@ -1,7 +1,7 @@
 import io
 from collections import defaultdict
 from datetime import datetime
-from typing import List, Any
+from typing import List, Any, Tuple
 import pandas as pd
 from sqladmin import ModelView, BaseView, expose
 from sqlalchemy import func, select
@@ -9,17 +9,18 @@ from starlette.responses import StreamingResponse, FileResponse
 import os
 import json
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.orm import selectinload
 from .settings import engine
 from .settings import engine
 
 from src.db.models.department import Department
 from src.db.models.establishment import Establishment
-from src.db.models.transaction import Transaction
+from src.db.models.transaction import Transaction, TransactionStatus
 from src.db.models.user import User
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, "department", "total_spent"]
+    column_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, "department",]
     can_create = True
     can_delete = False
     column_searchable_list = [User.username, User.first_name, User.last_name]
@@ -27,29 +28,9 @@ class UserAdmin(ModelView, model=User):
     column_export_list = [User.id, User.telegram_id, User.username, User.first_name, User.last_name, User.balance, User.department_id]
     column_labels = {
         "department": "Department",
-        "total_spent": "Total Spent",
     }
     icon = "fa-solid fa-user"
     name_plural = "Foydalanuvchilar"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.total_spent_cache = {}
-
-    def get_column_value(self, model: Any, column: str):
-        if column == "total_spent":
-            if model.id not in self.total_spent_cache:
-                total_spent = self.session.scalar(
-                    select(func.sum(Transaction.amount))
-                    .where(Transaction.user_id == model.id)
-                )
-                self.total_spent_cache[model.id] = total_spent or 0
-            return self.total_spent_cache[model.id]
-        return super().get_column_value(model, column)
-
-    async def get_list(self, request):
-        self.total_spent_cache = {}
-        return await super().get_list(request)
 
 
 class DepartmentAdmin(ModelView, model=Department):
@@ -116,34 +97,76 @@ class GlobalStatistics(BaseView):
     @expose("/dashboard", methods=["GET"])
     async def dashboard(self, request):
         async with self.async_session_factory() as session:
-            # Overall company statistics
+            # ✅ Overall company statistics
             total_users_count = await session.scalar(select(func.count(User.id)))
-            total_spending = await session.scalar(select(func.sum(Transaction.amount)))
+            total_spending = await session.scalar(
+                select(func.sum(Transaction.amount)).where(Transaction.status == TransactionStatus.COMPLETED)
+            ) or 0
             active_establishments_count = await session.scalar(select(func.count(Establishment.id)).where(Establishment.is_active == True))
 
-            # Spending by department
+            # ✅ Spending by department
             department_spending_query = (
                 select(Department.name, func.sum(Transaction.amount))
                 .select_from(Department)
                 .join(User, User.department_id == Department.id)
                 .join(Transaction, Transaction.user_id == User.id)
+                .where(Transaction.status == TransactionStatus.COMPLETED)
                 .group_by(Department.name)
             )
-            department_spending = await session.execute(department_spending_query)
-            department_spending = department_spending.fetchall()
+            department_spending_result = await session.execute(department_spending_query)
+            department_spending = department_spending_result.fetchall()
             
-            # Spending percentage by establishment
+            # ✅ Spending by establishment
             establishment_spending_query = (
                 select(Establishment.name, func.sum(Transaction.amount))
                 .select_from(Establishment)
                 .join(Transaction, Transaction.establishment_id == Establishment.id)
+                .where(Transaction.status == TransactionStatus.COMPLETED)
                 .group_by(Establishment.name)
             )
-            establishment_spending = await session.execute(establishment_spending_query)
-            establishment_spending = establishment_spending.fetchall()
+            establishment_spending_result = await session.execute(establishment_spending_query)
+            establishment_spending = establishment_spending_result.fetchall()
 
-            # Data for charting
-            establishment_data = [{"name": name, "spending": float(spending)} for name, spending in establishment_spending]
+            # ✅ Calculate spending percentage by establishment (shares)
+            establishment_data_with_shares = []
+            for name, spending in establishment_spending:
+                share = (spending / total_spending) * 100 if total_spending > 0 else 0
+                establishment_data_with_shares.append({
+                    "name": name,
+                    "spending": float(spending),
+                    "share": round(float(share), 2)
+                })
+
+            # ✅ View all transactions
+            all_transactions_query = (
+                select(Transaction)
+                .options(
+                    selectinload(Transaction.user), 
+                    selectinload(Transaction.establishment)
+                )
+                .order_by(Transaction.created_at.desc())
+            )
+            all_transactions_result = await session.execute(all_transactions_query)
+            all_transactions = all_transactions_result.scalars().all()
+
+            # ✅ View expenses for each user (by department)
+            user_spending_query = (
+                select(
+                    User,
+                    Department.name.label("department_name"),
+                    func.sum(Transaction.amount).label("total_spent")
+                )
+                .join(Transaction, Transaction.user_id == User.id)
+                .join(Department, User.department_id == Department.id, isouter=True)
+                .where(Transaction.status == TransactionStatus.COMPLETED)
+                .group_by(User.id, Department.name)
+                .order_by(func.sum(Transaction.amount).desc())
+            )
+            user_spending_result = await session.execute(user_spending_query)
+            user_spending_by_department = user_spending_result.all()
+
+            # Data for charting (remains unchanged)
+            establishment_chart_data = [{"name": name, "spending": float(spending)} for name, spending in establishment_spending]
 
             return await self.templates.TemplateResponse(
                 request,
@@ -153,7 +176,10 @@ class GlobalStatistics(BaseView):
                     "total_spending": total_spending,
                     "active_establishments": active_establishments_count,
                     "department_spending": department_spending,
-                    "establishment_data": json.dumps(establishment_data),
+                    "establishment_spending_with_shares": establishment_data_with_shares,
+                    "all_transactions": all_transactions,
+                    "user_spending_by_department": user_spending_by_department,
+                    "establishment_chart_data": json.dumps(establishment_chart_data),
                 },
             )
     

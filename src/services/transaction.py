@@ -2,7 +2,6 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.models.balance_history import BalanceHistory
 from src.db.models.establishment import Establishment
 from src.db.models.transaction import Transaction, TransactionStatus, TransactionType
 from src.db.models.user import User
@@ -13,8 +12,6 @@ from src.repositories.transaction import TransactionRepo
 from src.repositories.user import UserRepo
 from src.schemas.balance import PaymentRequest, PaymentResult
 
-from .notification import NotificationService
-
 
 class TransactionService:
     """Service for transaction processing."""
@@ -24,7 +21,6 @@ class TransactionService:
         self.user_repo = UserRepo(session)
         self.establishment_repo = EstablishmentRepo(session)
         self.transaction_repo = TransactionRepo(session)
-        self.notification_service = NotificationService(session)
 
     async def process_payment(self, payment_request: PaymentRequest) -> PaymentResult:
         """Process a payment transaction with full validation."""
@@ -159,20 +155,6 @@ class TransactionService:
         transaction.status = TransactionStatus.COMPLETED
         transaction.updated_at = func.current_timestamp()
         await self.transaction_repo.update(transaction)
-
-        # Create balance history record
-        balance_history = BalanceHistory(
-            user_id=transaction.user_id,
-            transaction_id=transaction.id,
-            amount_change=balance_change,
-            balance_before=old_balance,
-            balance_after=new_balance,
-            description=transaction.description,
-            created_by=transaction.created_by,
-        )
-
-        balance_repo = BaseRepository(self.session)
-        await balance_repo.create(balance_history)
 
     async def process_refund(
         self, transaction_id: int, admin_id: int, reason: str | None = None
