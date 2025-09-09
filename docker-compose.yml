@@ -34,7 +34,7 @@ services:
       - db
       - redis
     ports:
-      - "8200:8000"
+      - "8300:8000"
     command: poetry run python -m uvicorn src.admin.main:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips='*' --proxy-headers
 
 volumes:
