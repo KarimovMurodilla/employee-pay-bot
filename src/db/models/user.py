@@ -29,7 +29,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     telegram_id: Mapped[int] = mapped_column(
-        BigInteger, primary_key=True, unique=True, nullable=False
+        BigInteger, unique=True, nullable=False
     )
     username: Mapped[str | None] = mapped_column(String(255))
     first_name: Mapped[str | None] = mapped_column(String(255))
@@ -43,12 +43,6 @@ class User(Base):
         BigInteger, ForeignKey("departments.id")
     )
     balance: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0.00"))
-    daily_limit: Mapped[Decimal] = mapped_column(
-        Numeric(15, 2), default=Decimal("0.00")
-    )
-    monthly_limit: Mapped[Decimal] = mapped_column(
-        Numeric(15, 2), default=Decimal("0.00")
-    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
@@ -60,12 +54,11 @@ class User(Base):
         "Department", back_populates="users"
     )
     transactions: Mapped[list["Transaction"]] = relationship(
-        "Transaction", foreign_keys="Transaction.user_id", back_populates="user"
+        "Transaction", foreign_keys="Transaction.user_id", back_populates="user", cascade="all, delete-orphan"
     )
     establishments: Mapped[list["Establishment"]] = relationship(
         "Establishment",
-        back_populates="owner",
-        foreign_keys="[Establishment.owner_telegram_id]",
+        back_populates="owner"
     )
 
     # Indexes

@@ -41,7 +41,7 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     user_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("users.id"), nullable=False
+        BigInteger, ForeignKey("users.id"), nullable=False,
     )
     establishment_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("establishments.id")

@@ -72,18 +72,6 @@ class TransactionService:
                     f"{user.daily_limit - today_spent}",
                 )
 
-            # Check monthly limit
-            month_spent = await self.user_repo.get_month_spent(payment_request.user_id)
-            if (
-                user.monthly_limit > 0
-                and (month_spent + payment_request.amount) > user.monthly_limit
-            ):
-                return PaymentResult(
-                    success=False,
-                    error_message=f"Monthly spending limit exceeded. Remaining: "
-                    f"{user.monthly_limit - month_spent}",
-                )
-
             # Create transaction
             transaction = Transaction(
                 user_id=payment_request.user_id,
@@ -102,7 +90,7 @@ class TransactionService:
 
             # Send notification to establishment
             await self.notification_service.send_payment_notification(
-                establishment.owner_telegram_id, transaction
+                establishment.owner.telegram_id, transaction
             )
 
             return PaymentResult(

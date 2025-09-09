@@ -37,7 +37,7 @@ class UserAdmin(ModelView, model=User):
         "department",
     ]
     can_create = True
-    can_delete = False
+    can_delete = True
     column_searchable_list = [User.username, User.first_name, User.last_name]
     column_details_list = [
         User.id,
@@ -46,8 +46,6 @@ class UserAdmin(ModelView, model=User):
         User.first_name,
         User.last_name,
         User.balance,
-        User.daily_limit,
-        User.monthly_limit,
         "department",
         "transactions",
     ]
@@ -72,13 +70,24 @@ class DepartmentAdmin(ModelView, model=Department):
 
 
 class EstablishmentAdmin(ModelView, model=Establishment):
+    # This list controls the columns shown on the main list page. Your list is fine.
     column_list = [
         Establishment.id,
         Establishment.name,
+        Establishment.owner, # Displaying the owner relationship is correct here
         Establishment.address,
         Establishment.is_active,
-        "transactions",
-        "owner",
+    ]
+
+    # This new list controls the fields on the "Create" and "Edit" forms.
+    form_columns = [
+        Establishment.name,
+        Establishment.description,
+        Establishment.address,
+        Establishment.qr_code,
+        Establishment.max_order_amount,
+        Establishment.is_active,
+        "owner",  # Use the relationship name here as a string
     ]
 
 
@@ -96,7 +105,7 @@ class TransactionAdmin(ModelView, model=Transaction):
     ]
     can_create = False
     can_edit = False
-    can_delete = False
+    can_delete = True
     column_searchable_list = [Transaction.id, Transaction.user_id]
     column_details_list = [
         Transaction.id,

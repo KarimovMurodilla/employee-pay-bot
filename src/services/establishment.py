@@ -12,6 +12,7 @@ from src.repositories.establishment import EstablishmentRepo
 from src.repositories.transaction import TransactionRepo
 from src.utils.excel_write import write_revenue_excel
 from src.utils.pdf_write import write_revenue_pdf
+from pathlib import Path
 
 
 class EstablishmentService:
@@ -124,18 +125,21 @@ class EstablishmentService:
 
     async def get_revenue_summary_in_pdf(self, establishment_id: int):
         """Generate revenue summary report in PDF format."""
-        # Placeholder for PDF generation logic
         summary = await self.get_establishment_revenue_summary(establishment_id)
-        pdf_filename = f"reports/revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.pdf"
-        result = write_revenue_pdf(data=summary, filename=pdf_filename)
+        reports_dir = Path(__file__).parent.parent.parent / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        pdf_filename = reports_dir / f"revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.pdf"
+        result = write_revenue_pdf(data=summary, filename=str(pdf_filename))
         if result:
-            return pdf_filename
+            return str(pdf_filename)
 
     async def get_revenue_summary_in_excel(self, establishment_id: int):
         """Generate revenue summary report in XLSX format."""
-        # Placeholder for PDF generation logic
+
         summary = await self.get_establishment_revenue_summary(establishment_id)
-        xlsx_filename = f"reports/revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.xlsx"
-        result = write_revenue_excel(data=summary, filename=xlsx_filename)
+        reports_dir = Path(__file__).parent.parent.parent / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        xlsx_filename = reports_dir / f"revenue-summary_{datetime.now().strftime('%d-%m-%Y %H-%M-%S')}.xlsx"
+        result = write_revenue_excel(data=summary, filename=str(xlsx_filename))
         if result:
-            return xlsx_filename
+            return str(xlsx_filename)

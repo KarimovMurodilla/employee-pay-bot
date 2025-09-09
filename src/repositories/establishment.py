@@ -23,11 +23,13 @@ class EstablishmentRepo(BaseRepository):
     async def get_by_owner_telegram_id(
         self, owner_telegram_id: int
     ) -> Establishment | None:
-        """Get establishment by QR code."""
+        """Get establishment by owner's telegram_id."""
+        from src.db.models.user import User  # Adjust import if needed
+
         result = await self.session.execute(
-            select(Establishment).where(
-                Establishment.owner_telegram_id == owner_telegram_id
-            )
+            select(Establishment)
+            .join(User, Establishment.owner_id == User.id)
+            .where(User.telegram_id == owner_telegram_id)
         )
         return result.scalar_one_or_none()
 

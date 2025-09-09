@@ -65,7 +65,6 @@ async def confirm_purchase(
         amount = int(message.text)
         qr_code = await state.get_value("qr_code")
         user = await db.user_service.get_user_by_telegram_id(message.from_user.id)
-        today_spent = await db.user_service.get_user_today_spent(message.from_user.id)
         establishment = await db.establishment_service.get_establishment_by_qr(qr_code)
         transactions = await db.transaction_service.get_user_and_establishment_transactions_by_today(
             user_id=user.id, establishment_id=establishment.id
@@ -121,3 +120,4 @@ async def confirm_handler(
     await db.user_service.withdraw_from_balance(
         telegram_id=c.from_user.id, establishment_id=establishment.id, amount=amount
     )
+    await state.clear()

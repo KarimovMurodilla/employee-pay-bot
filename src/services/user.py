@@ -30,8 +30,6 @@ class UserService:
         last_name: str | None = None,
         role: UserRole = UserRole.EMPLOYEE,
         department_id: int | None = None,
-        daily_limit: Decimal = Decimal("100000"),
-        monthly_limit: Decimal = Decimal("2000000"),
     ) -> User:
         """Create new user."""
 
@@ -42,29 +40,9 @@ class UserService:
             last_name=last_name,
             role=role,
             department_id=department_id,
-            daily_limit=daily_limit,
-            monthly_limit=monthly_limit,
         )
 
         return await self.user_repo.create(user)
-
-    async def update_user_limits(
-        self,
-        user_id: int,
-        daily_limit: Decimal | None = None,
-        monthly_limit: Decimal | None = None,
-    ) -> User:
-        """Update user spending limits."""
-        user = await self.user_repo.get_by_id(User, user_id)
-        if not user:
-            raise ValidationError(f"User with id {user_id} not found")
-
-        if daily_limit is not None:
-            user.daily_limit = daily_limit
-        if monthly_limit is not None:
-            user.monthly_limit = monthly_limit
-
-        return await self.user_repo.update(user)
 
     async def get_user_today_spent(self, telegram_id: int):
         user = await self.user_repo.get_by_telegram_id(telegram_id)
@@ -85,14 +63,8 @@ class UserService:
         return {
             "user_id": user.id,
             "balance": user.balance,
-            "daily_limit": user.daily_limit,
-            "monthly_limit": user.monthly_limit,
             "today_spent": today_spent,
             "month_spent": month_spent,
-            "daily_remaining": user.daily_limit - today_spent,
-            "monthly_remaining": user.monthly_limit - month_spent,
-            "can_spend_today": user.daily_limit > today_spent,
-            "can_spend_this_month": user.monthly_limit > month_spent,
         }
 
     async def get_user_transactions(

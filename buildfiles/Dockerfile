@@ -1,6 +1,6 @@
 FROM docker.io/python:3.11.7-slim-bookworm as python-base
 
-ENV POETRY_VERSION=1.5.1 \
+ENV POETRY_VERSION=2.1.4 \
     POETRY_HOME=/opt/poetry \
     POETRY_VENV=/opt/poetry-venv \
     POETRY_CACHE_DIR=/opt/.cache
